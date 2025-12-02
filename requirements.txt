@@ -1,6 +1,0 @@
-streamlit
-requests
-Pillow
-opencv-python==4.10.0.84  # 明确指定支持Python 3.12的稳定版
-numpy
-tqdm
