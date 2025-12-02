@@ -3,46 +3,66 @@ import requests
 from PIL import Image
 import io
 
-# ---------------------- 仅需修改这1处！----------------------
-API_KEY ="ms-9f99616d-d3cf-4783-922a-1ed9599fec3a"  # 替换成第一步的hf_xxxxxx
-# -------------------------------------------------------------
+# 1. 替换为你的魔搭API密钥
+API_KEY = "ms-9f99616d-d3cf-4783-922a-1ed9599fec3a"  # 直接使用生成的完整Token（无需去掉前缀）
+# 2. 选择模型ID
+MODEL_ID = "Qwen/Qwen2.5-VL-72B-Instruct"
+# 3. 魔搭API固定地址
+API_URL = f"https://api-inference.modelscope.cn/v1/chat/completions"
 
-API_URL = "https://api-inference.huggingface.co/models/llava-hf/llava-1.5-7b-hf"
-headers = {"Authorization": f"Bearer {API_KEY}"}
+# 请求头配置
+headers = {
+    "Authorization": f"Bearer {API_KEY}",
+    "Content-Type": "application/json"
+}
 
-st.set_page_config(page_title="ComfyUI云端提示词反推", page_icon="🖼️")
-st.title("🖼️ ComfyUI 云端提示词反推工具")
-st.markdown("上传图片，云端生成提示词，直接复制到ComfyUI！")
+st.set_page_config(page_title="ComfyUI云端提示词反推（魔搭版）")
+st.title("🖼️ ComfyUI 魔搭免费API提示词反推")
 
 # 上传图片
 uploaded_file = st.file_uploader("选择图片（JPG/PNG）", type=["jpg", "jpeg", "png"])
-
 if uploaded_file:
-    # 预览图片
     image = Image.open(uploaded_file)
     st.image(image, caption="上传预览", width=300)
-    
+
     # 生成提示词按钮
-    if st.button("🚀 生成提示词"):
-        with st.spinner("云端处理中..."):
-            # 转换图片为字节流
+    if st.button("🚀 生成ComfyUI提示词"):
+        with st.spinner("魔搭云端处理中..."):
+            # 转换图片为Base64编码（魔搭API支持的格式）
             img_byte_arr = io.BytesIO()
             image.save(img_byte_arr, format='JPEG')
-            img_byte_arr = img_byte_arr.getvalue()
-            
-            # 调用云端API
-            data = {
-                "inputs": "详细描述图片：主体（人物/物体/动作）、场景背景、艺术风格、色彩氛围、光影效果、构图视角、纹理质感，用于AI绘画，适配ComfyUI"
+            img_base64 = img_byte_arr.getvalue().hex()  # 转换为十六进制编码
+
+            # 构造请求（Qwen2.5-VL的提示词模板）
+            payload = {
+                "model": MODEL_ID,
+                "messages": [
+                    {
+                        "role": "user",
+                        "content": [
+                            {
+                                "type": "text",
+                                "text": "详细描述这张图片的主体、风格、色彩、纹理、场景，输出适配ComfyUI的文生图提示词，关键词清晰、分点但用逗号连接"
+                            },
+                            {
+                                "type": "image_url",
+                                "image_url": {
+                                    "url": f"hex://{img_base64}"  # 魔搭支持的图片编码格式
+                                }
+                            }
+                        ]
+                    }
+                ],
+                "max_tokens": 200
             }
-            files = {"parameters": ("image.jpg", img_byte_arr, "image/jpeg")}
-            
+
             try:
-                response = requests.post(API_URL, headers=headers, data=data, files=files, timeout=30)
+                # 调用魔搭API
+                response = requests.post(API_URL, headers=headers, json=payload, timeout=60)
                 response.raise_for_status()
-                prompt = response.json()["generated_text"]
-                
-                # 显示提示词
-                st.subheader("生成的提示词（可直接复制）")
+                # 提取生成的提示词
+                prompt = response.json()["choices"][0]["message"]["content"]
+                st.subheader("生成的ComfyUI提示词")
                 st.text_area("", value=prompt, height=200)
                 st.success("提示词生成成功！")
             except Exception as e:
