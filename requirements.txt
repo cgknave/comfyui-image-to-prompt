@@ -1,3 +1,7 @@
 streamlit
 requests
 Pillow
+base64
+opencv-python
+numpy
+tqdm
