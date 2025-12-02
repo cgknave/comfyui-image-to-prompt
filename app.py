@@ -7,7 +7,7 @@ import io
 API_KEY ="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"  # 替换成第一步的hf_xxxxxx
 # -------------------------------------------------------------
 
-API_URL = "https://api-inference.huggingface.co/models/Salesforce/blip2-opt-2.7b"
+API_URL = "https://api-inference.huggingface.co/models/Salesforce/blip2-opt-6.7b-coco"
 headers = {"Authorization": f"Bearer {API_KEY}"}
 
 st.set_page_config(page_title="ComfyUI云端提示词反推", page_icon="🖼️")
