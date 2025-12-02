@@ -4,7 +4,7 @@ from PIL import Image
 import io
 
 # ---------------------- 仅需修改这1处！----------------------
-API_KEY ="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"  # 替换成第一步的hf_xxxxxx
+API_KEY ="ms-9f99616d-d3cf-4783-922a-1ed9599fec3a"  # 替换成第一步的hf_xxxxxx
 # -------------------------------------------------------------
 
 API_URL = "https://api-inference.huggingface.co/models/llava-hf/llava-1.5-7b-hf"
